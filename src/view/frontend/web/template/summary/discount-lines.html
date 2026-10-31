@@ -1,0 +1,72 @@
+<!-- ko if: isDisplayed() -->
+<!-- ko ifnot: hasLines() -->
+<tr class="totals discount">
+    <th class="mark" scope="row">
+        <span class="title" data-bind="text: getTitle()"></span>
+        <span class="discount coupon" data-bind="text: getCouponCode()"></span>
+    </th>
+    <td class="amount">
+        <span class="price" data-bind="text: getValue(), attr: {'data-th': name}"></span>
+    </td>
+</tr>
+<!-- /ko -->
+<!-- ko if: hasLines() -->
+<tr class="totals discount pp-dl-row">
+    <td class="pp-dl-cell" colspan="2">
+        <div class="pp-dl" data-bind="css: ppVariantClass">
+            <!-- ko foreach: {data: getLines(), as: 'line'} -->
+            <!-- ko if: $parent.ppVariant === 'A' -->
+            <div class="pp-dl__line">
+                <div class="pp-dl__label">
+                    <!-- ko if: line.removable -->
+                    <span data-bind="text: $parent.getCouponText()"></span>
+                    <!-- ko template: {name: 'PixelPerfect_DiscountLinesLuma/summary/chip', data: {view: $parent, line: line, cross: true}} --><!-- /ko -->
+                    <!-- /ko -->
+                    <!-- ko ifnot: line.removable -->
+                    <span class="pp-dl__label-plain">
+                        <img class="pp-dl__icon" alt="" width="14" height="14" aria-hidden="true"
+                             data-bind="attr: {src: $parent.getIconUrl(line.kind)}"/>
+                        <span data-bind="text: line.label"></span>
+                    </span>
+                    <!-- /ko -->
+                </div>
+                <span class="pp-dl__amount price" data-bind="text: $parent.getLineAmount(line)"></span>
+            </div>
+            <!-- /ko -->
+            <!-- ko if: $parent.ppVariant === 'D' -->
+            <div class="pp-dl__line">
+                <span class="pp-dl__label">
+                    <!-- ko if: line.removable -->
+                    <span data-bind="text: $parent.getCouponText()"></span>
+                    <!-- /ko -->
+                    <!-- ko template: {name: 'PixelPerfect_DiscountLinesLuma/summary/chip', data: {view: $parent, line: line, cross: true}} --><!-- /ko -->
+                </span>
+                <span class="pp-dl__amount price" data-bind="text: $parent.getLineAmount(line)"></span>
+            </div>
+            <!-- /ko -->
+            <!-- ko if: $parent.ppVariant === 'B' || $parent.ppVariant === 'C' -->
+            <div class="pp-dl__line">
+                <span class="pp-dl__label">
+                    <!-- ko template: {name: 'PixelPerfect_DiscountLinesLuma/summary/chip', data: {view: $parent, line: line, cross: $parent.ppVariant === 'B'}} --><!-- /ko -->
+                </span>
+                <span class="pp-dl__amount price" data-bind="text: $parent.getLineAmount(line)"></span>
+            </div>
+            <!-- /ko -->
+            <!-- /ko -->
+            <!-- ko if: ppVariant === 'C' -->
+            <!-- ko if: hasSavedTotal() -->
+            <div class="pp-dl__summary">
+                <span data-bind="text: getSavedLabel()"></span>
+                <span class="pp-dl__amount price" data-bind="text: getSavedText()"></span>
+            </div>
+            <!-- /ko -->
+            <!-- ko with: getFirstCoupon() -->
+            <button type="button" class="pp-dl__remove pp-dl__remove--link"
+                    data-bind="click: function () { $parent.removeCoupon($data); }, disable: $parent.ppBusy, attr: {'aria-label': $parent.getRemoveLabel($data)}, text: $parent.getRemoveText()"></button>
+            <!-- /ko -->
+            <!-- /ko -->
+        </div>
+    </td>
+</tr>
+<!-- /ko -->
+<!-- /ko -->

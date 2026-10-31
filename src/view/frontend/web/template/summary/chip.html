@@ -1,0 +1,13 @@
+<!-- ko with: view -->
+<span class="pp-dl__chip" data-bind="css: 'pp-dl__chip--' + $parent.line.kind">
+    <img class="pp-dl__icon" alt="" width="14" height="14" aria-hidden="true"
+         data-bind="attr: {src: getIconUrl($parent.line.kind)}"/>
+    <span data-bind="text: $parent.line.label, css: {'pp-dl__code': $parent.line.removable}"></span>
+    <!-- ko if: $parent.line.removable && $parent.cross -->
+    <button type="button" class="pp-dl__remove"
+            data-bind="click: function () { removeCoupon($parent.line); }, disable: ppBusy, attr: {'aria-label': getRemoveLabel($parent.line)}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>
+    </button>
+    <!-- /ko -->
+</span>
+<!-- /ko -->

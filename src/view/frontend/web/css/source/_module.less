@@ -1,0 +1,50 @@
+// Discount Lines (Luma). The look comes from the base stylesheet (PixelPerfect_DiscountLines::css/discount-lines.css);
+// colours are its --pp-dl-* custom properties. This file only undoes Luma's table and button styles for the lines.
+
+.pp-dl-row {
+    .pp-dl-cell {
+        padding: 0 0 @indent__xs;
+        border: 0;
+    }
+
+    .pp-dl {
+        font-size: inherit;
+    }
+
+    .pp-dl__line {
+        text-align: left;
+    }
+
+    .pp-dl__amount {
+        text-align: right;
+    }
+
+    .pp-dl__icon {
+        margin: 0;
+        max-width: none;
+    }
+
+    button.pp-dl__remove {
+        .lib-css(background, transparent);
+        .lib-css(border, 0);
+        .lib-css(box-shadow, none);
+        .lib-css(color, inherit);
+        .lib-css(font-weight, 400);
+        .lib-css(line-height, 1);
+        .lib-css(padding, 0 0.25em);
+        .lib-css(text-shadow, none);
+        width: auto;
+
+        &:hover,
+        &:active {
+            .lib-css(background, transparent);
+            .lib-css(border, 0);
+            .lib-css(box-shadow, none);
+        }
+    }
+
+    button.pp-dl__remove--link {
+        .lib-css(padding, 0.25rem 0);
+        .lib-css(text-decoration, underline);
+    }
+}
