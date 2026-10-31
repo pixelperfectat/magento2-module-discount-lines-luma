@@ -40,6 +40,49 @@ bin/magento setup:upgrade
 Set under Stores > Configuration > Sales > Discount Lines: A (label with chip below), B (chip as the label, default),
 C (grouped block with "You save" total), D (quiet icon and monospace).
 
+## Configuration
+
+Configured in the base package under Stores > Configuration > Sales > Discount Lines (store-view scope):
+`pp_discount_lines/general/enabled` (default `1`) and `pp_discount_lines/display/variant` (`A` to `D`, default `B`).
+See the [base README](https://github.com/pixelperfectat/magento2-module-discount-lines#configuration) for the full table.
+
+## Contract
+
+The data this package renders (`extension_attributes.discount_lines`, row data key `discount_line`, the label rule
+and the line kinds) is described in the
+[contract section of the base README](https://github.com/pixelperfectat/magento2-module-discount-lines#contract-with-the-sales-email-module).
+
+## Known limits
+
+- Orders placed before the base module was installed keep the merged core row.
+- Existing carts show the core row until the next totals collect.
+- A line list is shown whenever lines exist, even when core would hide the discount row (a quote with only a gift or
+  free-shipping line).
+- On the cart page the coupon remove button posts the cart coupon form, because that page renders its coupon form on
+  the server.
+- See the base README for the complete list of known limits.
+
+## Screenshots
+
+Placeholder data only, in `docs/screenshots/`:
+
+![Cart, variant A](docs/screenshots/luma-cart-variant-A.jpg)
+
+![Cart, variant B](docs/screenshots/luma-cart-variant-B.jpg)
+
+![Cart, variant C](docs/screenshots/luma-cart-variant-C.jpg)
+
+![Cart, variant D](docs/screenshots/luma-cart-variant-D.jpg)
+
+![Checkout, variant B](docs/screenshots/luma-checkout-variant-B.jpg)
+
+## Development
+
+```bash
+composer install
+composer check
+```
+
 ## License
 
-MIT
+MIT, see `LICENSE`.
