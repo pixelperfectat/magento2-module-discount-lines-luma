@@ -5,7 +5,7 @@ var config = {
                 'PixelPerfect_DiscountLinesLuma/js/view/discount-lines-mixin': true
             },
             'Magento_SalesRule/js/view/cart/totals/discount': {
-                'PixelPerfect_DiscountLinesLuma/js/view/discount-lines-mixin': true
+                'PixelPerfect_DiscountLinesLuma/js/view/cart-mixin': true
             }
         }
     }

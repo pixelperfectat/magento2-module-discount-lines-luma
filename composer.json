@@ -40,8 +40,10 @@
             "@lint",
             "@cs",
             "@stan",
-            "@test"
-        ]
+            "@test",
+            "@test:js"
+        ],
+        "test:js": "command -v node >/dev/null 2>&1 && node Test/Js/lines.test.js || echo \"node not found, JS tests skipped\""
     },
     "config": {
         "sort-packages": true,

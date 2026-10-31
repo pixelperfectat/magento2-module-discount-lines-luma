@@ -1,5 +1,6 @@
-<!-- ko if: isDisplayed() -->
+<!-- ko if: isVisible() -->
 <!-- ko ifnot: hasLines() -->
+<!-- ko ifnot: ppIsCart -->
 <tr class="totals discount">
     <th class="mark" scope="row">
         <span class="title" data-bind="text: getTitle()"></span>
@@ -9,6 +10,18 @@
         <span class="price" data-bind="text: getValue(), attr: {'data-th': name}"></span>
     </td>
 </tr>
+<!-- /ko -->
+<!-- ko if: ppIsCart -->
+<tr class="totals">
+    <th colspan="1" class="mark" scope="row">
+        <span class="title" data-bind="text: getTitle()"></span>
+        <span class="discount coupon" data-bind="text: getCouponLabel()"></span>
+    </th>
+    <td class="amount" data-bind="attr: {'data-th': title}">
+        <span><span class="price" data-bind="text: getValue()"></span></span>
+    </td>
+</tr>
+<!-- /ko -->
 <!-- /ko -->
 <!-- ko if: hasLines() -->
 <tr class="totals discount pp-dl-row">

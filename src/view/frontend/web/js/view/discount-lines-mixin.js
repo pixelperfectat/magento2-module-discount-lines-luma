@@ -1,80 +1,75 @@
 /**
- * Renders one totals line per discount in the Luma cart summary and checkout sidebar.
+ * Renders one totals line per discount in the Luma checkout sidebar (and, through cart-mixin.js, the cart page).
  *
- * Mixin for Magento_SalesRule/js/view/summary/discount and .../cart/totals/discount. The lines are read from
- * totals().total_segments[code=discount].extension_attributes.discount_lines (numbers may be floats or strings,
- * `code` is missing for lines without a code). Without lines, or when the module is disabled, the template falls back
- * to the core title and value.
+ * Mixin for Magento_SalesRule/js/view/summary/discount. The lines are read from
+ * totals().total_segments[code=discount].extension_attributes.discount_lines. Without lines, or when the module is
+ * disabled, the template falls back to the core markup and gating.
  */
 define([
     'jquery',
     'ko',
     'Magento_SalesRule/js/action/cancel-coupon',
+    'Magento_SalesRule/js/model/coupon',
     'mage/url',
+    'PixelPerfect_DiscountLinesLuma/js/model/lines',
     'mage/cookies'
-], function ($, ko, cancelCoupon, url) {
+], function ($, ko, cancelCoupon, couponModel, url, linesModel) {
     'use strict';
-
-    var config = (window.checkoutConfig || {}).ppDiscountLines || {},
-        labels = config.labels || {},
-        icons = config.icons || {};
-
-    /**
-     * @param {*} segments
-     * @return {Array}
-     */
-    function readLines(segments) {
-        var segment, raw;
-
-        if (!Array.isArray(segments)) {
-            return [];
-        }
-        segment = segments.filter(function (item) {
-            return item && item.code === 'discount';
-        })[0];
-        raw = segment && segment['extension_attributes'] && segment['extension_attributes']['discount_lines'];
-        if (!Array.isArray(raw)) {
-            return [];
-        }
-
-        return raw.map(function (line) {
-            return {
-                kind: String(line.kind || ''),
-                code: line.code ? String(line.code) : '',
-                label: String(line.label || ''),
-                cents: Math.round((Number(line.amount) || 0) * 100),
-                removable: line.kind === 'coupon'
-            };
-        });
-    }
 
     return function (target) {
         var coreTemplate = target.defaults.template;
 
+        if (target.defaults.ppMixin) {
+            return target;
+        }
+
         return target.extend({
             defaults: {
-                template: 'PixelPerfect_DiscountLinesLuma/summary/discount-lines'
+                template: 'PixelPerfect_DiscountLinesLuma/summary/discount-lines',
+                ppMixin: true,
+                ppIsCart: false
             },
 
             /**
              * @inheritdoc
              */
             initialize: function () {
+                var self = this;
+
                 this._super();
-                this.ppEnabled = config.enabled === true;
-                this.ppVariant = String(config.variant || 'B').toUpperCase();
+                this.ppConfig = (window.checkoutConfig || {}).ppDiscountLines || {};
+                this.ppEnabled = this.ppConfig.enabled === true;
+                this.ppVariant = String(this.ppConfig.variant || 'B').toUpperCase();
+                this.ppVariantClass = 'pp-dl--' + this.ppVariant.toLowerCase();
                 this.ppBusy = ko.observable(false);
                 this.ppLines = ko.pureComputed(function () {
                     var totals = this.totals();
 
-                    return this.ppEnabled && totals ? readLines(totals['total_segments']) : [];
+                    return this.ppEnabled && totals ? linesModel.fromSegments(totals['total_segments']) : [];
                 }, this);
-                this.ppVariantClass = 'pp-dl--' + this.ppVariant.toLowerCase();
                 if (!this.ppEnabled) {
                     this.template = coreTemplate;
                 }
+                // The coupon is gone and the totals are reloaded: the chip can be used again.
+                cancelCoupon.registerSuccessCallback(function () {
+                    self.ppBusy(false);
+                });
 
                 return this;
+            },
+
+            /**
+             * Lines are shown whenever there are some (a gift or free shipping line has amount 0); without lines the
+             * core gating applies. The checkout sidebar waits for the shipping step like core does.
+             *
+             * @return {Boolean}
+             */
+            isVisible: function () {
+                if (this.hasLines()) {
+                    return this.ppIsCart || this.isFullMode();
+                }
+
+                return this.isDisplayed();
             },
 
             /**
@@ -96,35 +91,37 @@ define([
              * @return {String}
              */
             getLineAmount: function (line) {
+                var labels = this.ppConfig.labels || {};
+
                 if (line.cents > 0) {
                     return this.getFormattedPrice(-line.cents / 100);
                 }
+                if (line.kind === 'gift') {
+                    return labels.gift;
+                }
+                if (line.kind === 'free_shipping') {
+                    return labels.free;
+                }
 
-                return line.kind === 'free_shipping' ? labels.free : labels.gift;
+                return this.getFormattedPrice(0);
             },
 
             /**
-             * "You save" in integer cents; only shown with more than one line.
+             * "You save" in integer cents.
              *
              * @return {String}
              */
             getSavedText: function () {
-                var cents = this.ppLines().reduce(function (sum, line) {
-                    return sum + line.cents;
-                }, 0);
-
-                return this.getFormattedPrice(-cents / 100);
+                return this.getFormattedPrice(-linesModel.sumCents(this.ppLines()) / 100);
             },
 
             /**
+             * Only with more than one line and a real saving.
+             *
              * @return {Boolean}
              */
             hasSavedTotal: function () {
-                var lines = this.ppLines();
-
-                return lines.length > 1 && lines.some(function (line) {
-                    return line.cents > 0;
-                });
+                return this.ppLines().length > 1 && linesModel.sumCents(this.ppLines()) > 0;
             },
 
             /**
@@ -141,6 +138,8 @@ define([
              * @return {String}
              */
             getIconUrl: function (kind) {
+                var icons = this.ppConfig.icons || {};
+
                 return icons[kind] || icons['default'] || '';
             },
 
@@ -149,33 +148,35 @@ define([
              * @return {String}
              */
             getRemoveLabel: function (line) {
-                return String(labels.removeCouponNamed || '').replace('%1', line ? line.label : '');
+                return String((this.ppConfig.labels || {}).removeCouponNamed || '')
+                    .replace('%1', line ? line.label : '');
             },
 
             /**
              * @return {String}
              */
             getCouponText: function () {
-                return labels.coupon;
+                return (this.ppConfig.labels || {}).coupon;
             },
 
             /**
              * @return {String}
              */
             getRemoveText: function () {
-                return labels.removeCoupon;
+                return (this.ppConfig.labels || {}).removeCoupon;
             },
 
             /**
              * @return {String}
              */
             getSavedLabel: function () {
-                return labels.youSave;
+                return (this.ppConfig.labels || {}).youSave;
             },
 
             /**
-             * Remove the coupon: through the checkout API in the sidebar (totals update in place), through the
-             * cart coupon form on the cart page (the coupon form of that page is rendered by the server).
+             * Remove the coupon: through the checkout API in the sidebar (totals update in place and the coupon
+             * form of the payment step is reset through the shared coupon model), through the cart coupon form on
+             * the cart page (that page renders its coupon form on the server).
              *
              * @param {Object|null} line
              */
@@ -188,7 +189,7 @@ define([
                 }
                 this.ppBusy(true);
 
-                if (document.body.classList.contains('checkout-cart-index')) {
+                if (this.ppIsCart) {
                     form = $('<form method="post"></form>').attr('action', url.build('checkout/cart/couponPost/'));
                     [['form_key', $.mage.cookies.get('form_key')], ['coupon_code', line.code], ['remove', '1']]
                         .forEach(function (pair) {
@@ -199,7 +200,7 @@ define([
                     return;
                 }
 
-                cancelCoupon(ko.observable(true)).always(function () {
+                cancelCoupon(couponModel.getIsApplied()).fail(function () {
                     self.ppBusy(false);
                 });
             }

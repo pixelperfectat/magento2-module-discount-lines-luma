@@ -10,17 +10,22 @@ class AssetsTest extends TestCase
 {
     private const MODULE_DIR = __DIR__ . '/../../src';
 
-    public function testMixinIsRegisteredForSummaryAndCartDiscountComponents(): void
+    public function testMixinsAreRegisteredForSummaryAndCartDiscountComponents(): void
     {
         $config = (string)file_get_contents(self::MODULE_DIR . '/view/frontend/requirejs-config.js');
+        $map = [
+            'Magento_SalesRule/js/view/summary/discount' => 'discount-lines-mixin',
+            'Magento_SalesRule/js/view/cart/totals/discount' => 'cart-mixin',
+        ];
 
-        foreach (['Magento_SalesRule/js/view/summary/discount', 'Magento_SalesRule/js/view/cart/totals/discount'] as $c) {
+        foreach ($map as $component => $mixin) {
             self::assertMatchesRegularExpression(
-                '#\'' . preg_quote($c, '#') . '\':\s*\{\s*\'PixelPerfect_DiscountLinesLuma/js/view/discount-lines-mixin\': true#',
+                '#\'' . preg_quote($component, '#') . '\':\s*\{\s*\'PixelPerfect_DiscountLinesLuma/js/view/'
+                . preg_quote($mixin, '#') . '\': true#',
                 $config
             );
+            self::assertFileExists(self::MODULE_DIR . '/view/frontend/web/js/view/' . $mixin . '.js');
         }
-        self::assertFileExists(self::MODULE_DIR . '/view/frontend/web/js/view/discount-lines-mixin.js');
     }
 
     public function testBaseStylesheetIsLoadedOnCartAndCheckout(): void
