@@ -11,7 +11,15 @@ new Function('define', fs.readFileSync(path.join(__dirname, '../../src/view/fron
 
 const seg = (list) => [{code: 'subtotal'}, {code: 'discount', extension_attributes: {discount_lines: list}}];
 let n = 0;
-const test = (name, fn) => { fn(); n++; };
+const test = (name, fn) => {
+    try {
+        fn();
+    } catch (e) {
+        console.error('FAILED: ' + name);
+        throw e;
+    }
+    n++;
+};
 
 test('cents of floats and strings', () => {
     assert.strictEqual(lines.toCents(8.96), 896);

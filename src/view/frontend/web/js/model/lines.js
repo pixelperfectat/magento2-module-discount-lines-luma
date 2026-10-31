@@ -5,7 +5,7 @@ define([], function () {
     'use strict';
 
     /**
-     * Amount (float or numeric string) to integer cents, rounded half up on two decimals.
+     * Amount (float or numeric string) to integer cents: rounded to two decimals with toFixed(2) first, then scaled.
      *
      * @param {*} amount
      * @return {Number}
