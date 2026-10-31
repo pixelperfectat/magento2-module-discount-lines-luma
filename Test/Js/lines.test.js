@@ -50,4 +50,20 @@ test('zero amount line is kept', () => {
     assert.strictEqual(l[0].cents, 0);
 });
 
+test('only coupon and gift lines with a code are removable', () => {
+    const l = lines.fromSegments(seg([
+        {kind: 'coupon', label: 'X', amount: 1},
+        {kind: 'gift', code: 'GIFT', label: 'GIFT', amount: 0},
+        {kind: 'gift', label: 'Gift', amount: 0},
+        {kind: 'free_shipping', code: 'S', label: 'S', amount: 0},
+        {kind: 'gift_card', code: '••••1234', label: 'Gift card ••••1234', amount: 5}
+    ]));
+    assert.deepStrictEqual(l.map((x) => x.removable), [false, true, false, false, false]);
+});
+test('saved amount is positive', () => {
+    const l = lines.fromSegments(seg([{kind: 'automatic', amount: 3.15}, {kind: 'coupon', code: 'C', amount: 8.96}]));
+    assert.strictEqual(lines.savedAmount(l), 12.11);
+    assert.strictEqual(lines.savedAmount([]), 0);
+});
+
 console.log('OK (' + n + ' tests)');

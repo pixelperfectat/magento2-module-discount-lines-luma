@@ -43,7 +43,7 @@ define([], function () {
                     code: line.code ? String(line.code) : '',
                     label: String(line.label || ''),
                     cents: toCents(line.amount),
-                    removable: line.kind === 'coupon'
+                    removable: Boolean(line.code) && (line.kind === 'coupon' || line.kind === 'gift')
                 };
             });
         },
@@ -56,6 +56,16 @@ define([], function () {
             return lines.reduce(function (sum, line) {
                 return sum + line.cents;
             }, 0);
+        },
+
+        /**
+         * "You save": the saving as a positive amount.
+         *
+         * @param {Array} lines normalised lines
+         * @return {Number}
+         */
+        savedAmount: function (lines) {
+            return this.sumCents(lines) / 100;
         }
     };
 });

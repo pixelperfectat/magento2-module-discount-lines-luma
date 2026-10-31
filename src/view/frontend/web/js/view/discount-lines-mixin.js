@@ -107,12 +107,12 @@ define([
             },
 
             /**
-             * "You save" in integer cents.
+             * "You save" as a positive amount (summed in integer cents).
              *
              * @return {String}
              */
             getSavedText: function () {
-                return this.getFormattedPrice(-linesModel.sumCents(this.ppLines()) / 100);
+                return this.getFormattedPrice(linesModel.savedAmount(this.ppLines()));
             },
 
             /**
