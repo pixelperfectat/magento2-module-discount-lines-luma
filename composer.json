@@ -43,7 +43,8 @@
             "@cs",
             "@stan",
             "@test",
-            "@test:js"
+            "@test:js",
+            "@infection"
         ],
         "test:js": "sh Test/Js/run.sh"
     },
